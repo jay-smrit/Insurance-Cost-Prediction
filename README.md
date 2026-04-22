@@ -54,11 +54,8 @@ Various models were tested to evaluate predictive performance on the target Prem
 | **Model**                                 | **Train R2** | **Test R2** | **Test Adjusted R2** |
 | ----------------------------------------- | ------------ | ----------- | -------------------- |
 | **Linear Regression**                     | 0.6221       | 0.7134      | 0.6981               |
-| ---                                       | ---          | ---         | ---                  |
 | **Lasso Regression ( \$\\alpha=0.01\$ )** | 0.6219       | 0.7133      | 0.7097               |
-| ---                                       | ---          | ---         | ---                  |
 | **Ridge Regression ( \$\\alpha=1\$ )**    | 0.6216       | 0.7110      | 0.7073               |
-| ---                                       | ---          | ---         | ---                  |
 
 _Diagnostic Note:_ Residuals for the linear regression models are not normally distributed, and Goldfeld-Quandt tests indicated the presence of heteroskedasticity (increasing variance in errors). A 4-fold cross-validation yielded an average \$R^2\$ of ~0.6029.
 
