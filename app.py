@@ -2,30 +2,87 @@ import streamlit as st
 import pandas as pd
 import pickle
 
+# -------------------------------
+# Load trained model & pipeline
+# -------------------------------
 with open('rf_model.pkl', 'rb') as f:
     rf_model = pickle.load(f)
 
-st.title("Insurance Premium Calculator")
+# -------------------------------
+# Page Config
+# -------------------------------
+st.set_page_config(page_title="Insurance Premium Predictor", layout="centered")
 
-st.write("Please enter insurer details below")
+st.title("💰 Insurance Premium Prediction App")
+st.markdown("Enter customer details to estimate the insurance premium.")
 
-Age = st.number_input("Age", min_value=18, max_value=150, value=30)
-Diabetes = st.selectbox("Diabetes", options=[0, 1])
-BloodPressureProblems = st.selectbox("BloodPressure Problems", options=[0, 1])
-AnyTransplants = st.selectbox("Any Transplants", options=[0, 1])
-AnyChronicDiseases = st.selectbox("Any Chronic Diseases", options=[0, 1])
-Height = st.number_input("Height (in cm)", min_value=0, max_value=250, value=170)
-Weight = st.number_input("Weight (in kg)", min_value=0, max_value=300, value=70)
-KnownAllergies = st.selectbox("Known Allergies", options=[0, 1])
-HistoryOfCancerInFamily = st.selectbox("History Of Cancer In Family", options=[0, 1])
-NumberOfMajorSurgeries = st.selectbox("NumberOfMajorSurgeries", options=[0, 1,2,3])
+# -------------------------------
+# Input Section
+# -------------------------------
+st.header("📋 Customer Information")
 
-input_df = pd.DataFrame([[Age, Diabetes, BloodPressureProblems, AnyTransplants, AnyChronicDiseases, Height, Weight, KnownAllergies, HistoryOfCancerInFamily, NumberOfMajorSurgeries]],
-                        columns=['Age', 'Diabetes', 'BloodPressureProblems', 'AnyTransplants', 'AnyChronicDiseases', 'Height', 'Weight', 'KnownAllergies', 'HistoryOfCancerInFamily', 'NumberOfMajorSurgeries'])
+# Continuous Inputs
+age = st.slider("Age", 18, 100, 30)
+height = st.slider("Height (cm)", 100, 220, 170)
+weight = st.slider("Weight (kg)", 30, 150, 70)
 
-st.dataframe(input_df)
+# Categorical Inputs (Binary)
+def binary_input(label):
+    return st.selectbox(label, ["No", "Yes"])
 
-if st.button("Predict Premium Price"):
-    prediction = rf_model.predict(input_df)[0]
-    st.write(f"The predicted premium price is:  {prediction:,.2f}")
+diabetes = binary_input("Diabetes")
+bp = binary_input("Blood Pressure Problems")
+transplants = binary_input("Any Transplants")
+chronic = binary_input("Any Chronic Diseases")
+allergies = binary_input("Known Allergies")
+cancer_history = binary_input("History of Cancer in Family")
 
+# Numeric discrete
+surgeries = st.number_input("Number of Major Surgeries", min_value=0, max_value=10, step=1)
+
+# -------------------------------
+# Convert Inputs
+# -------------------------------
+def encode_binary(value):
+    return 1 if value == "Yes" else 0
+
+input_data = pd.DataFrame({
+    "Age": [age],
+    "Diabetes": [encode_binary(diabetes)],
+    "BloodPressureProblems": [encode_binary(bp)],
+    "AnyTransplants": [encode_binary(transplants)],
+    "AnyChronicDiseases": [encode_binary(chronic)],
+    "Height": [height],
+    "Weight": [weight],
+    "KnownAllergies": [encode_binary(allergies)],
+    "HistoryOfCancerInFamily": [encode_binary(cancer_history)],
+    "NumberOfMajorSurgeries": [surgeries]
+})
+
+# -------------------------------
+# Prediction
+# -------------------------------
+st.markdown("---")
+
+if st.button("🔍 Predict Premium"):
+    try:
+        prediction = rf_model.predict(input_data)[0]
+
+        st.success(f"💸 Estimated Premium: ₹ {prediction:,.2f}")
+
+        # Optional interpretation
+        if prediction < 10000:
+            st.info("Low Risk Profile")
+        elif prediction < 30000:
+            st.warning("Moderate Risk Profile")
+        else:
+            st.error("High Risk Profile")
+
+    except Exception as e:
+        st.error(f"Error: {e}")
+
+# -------------------------------
+# Footer
+# -------------------------------
+st.markdown("---")
+st.caption("Built with ❤️ using Streamlit")
